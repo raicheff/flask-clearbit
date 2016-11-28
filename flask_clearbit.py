@@ -13,13 +13,13 @@ import logging
 import clearbit
 import itsdangerous
 
-from flask import Response, current_app, request
+from flask import Response, abort, current_app, request
 from flask.signals import Namespace
 
 
 __all__ = ('Clearbit', 'clearbit_result')
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 
 logger = logging.getLogger('Flask-Clearbit')
@@ -46,7 +46,8 @@ class Clearbit(object):
     def init_app(self, app, blueprint=None):
         clearbit_key = app.config.get('CLEARBIT_KEY')
         if clearbit_key is None:
-            logger.warning('CLEARBIT_KEY not set.')
+            logger.warning('CLEARBIT_KEY not set')
+            return
         clearbit.key = clearbit_key
         if blueprint is not None:
             blueprint.add_url_rule('/clearbit', 'clearbit', webhooks, methods=['POST'])
@@ -57,26 +58,26 @@ def webhooks():
     https://clearbit.com/docs?python#webhooks
     """
 
-    request_signature = request.headers.get('X-Request-Signature')
+    request_signature = request.headers.get('x-request-signature')
     if not request_signature:
-        return Response(status=400)
+        abort(400)  # Bad Request
 
     algorithm, signature = request_signature.split('=')
     if not all((algorithm == 'sha1', signature)):
-        return Response(status=400)
+        abort(400)  # Bad Request
 
     key = current_app.config.get('CLEARBIT_KEY')
     message = request.data
     digest = hmac.new(key, message, hashlib.sha1).hexdigest()
     if not itsdangerous.constant_time_compare(digest, str(signature)):
-        return Response(status=BAD_REQUEST)
+        abort(400)  # Bad Request
 
     payload = request.get_json()
     webhook_id = payload.get('id')
     logger.info('webhook_id=%s', webhook_id)
     clearbit_result.send(current_app._get_current_object(), payload=payload)
 
-    return Response(status=OK)
+    return Response(status=200)
 
 
 # EOF
