@@ -10,6 +10,13 @@ import hashlib
 import hmac
 import logging
 
+try:
+    # Python 2
+    from httplib import BAD_REQUEST, OK
+except ImportError:
+    # Python 3+
+    from http.client import BAD_REQUEST, OK
+
 import clearbit
 import itsdangerous
 
@@ -60,24 +67,24 @@ def webhooks():
 
     request_signature = request.headers.get('x-request-signature')
     if not request_signature:
-        abort(400)  # Bad Request
+        abort(BAD_REQUEST)
 
     algorithm, signature = request_signature.split('=')
     if not all((algorithm == 'sha1', signature)):
-        abort(400)  # Bad Request
+        abort(BAD_REQUEST)
 
     key = current_app.config.get('CLEARBIT_KEY')
     message = request.data
     digest = hmac.new(key, message, hashlib.sha1).hexdigest()
     if not itsdangerous.constant_time_compare(digest, str(signature)):
-        abort(400)  # Bad Request
+        abort(BAD_REQUEST)
 
     payload = request.get_json()
     webhook_id = payload.get('id')
     logger.info('webhook_id=%s', webhook_id)
     clearbit_result.send(current_app._get_current_object(), payload=payload)
 
-    return Response(status=200)
+    return Response(status=OK)
 
 
 # EOF
