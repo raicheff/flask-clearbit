@@ -1,5 +1,5 @@
 #
-# Flask-FileRev
+# Flask-Clearbit
 #
 # Copyright (C) 2016 Boris Raicheff
 # All rights reserved
@@ -10,18 +10,12 @@ import hashlib
 import hmac
 import logging
 
-try:
-    # Python 2
-    from httplib import BAD_REQUEST, OK
-except ImportError:
-    # Python 3+
-    from http.client import BAD_REQUEST, OK
-
 import clearbit
 import itsdangerous
 
 from flask import Response, abort, current_app, request
 from flask.signals import Namespace
+from six.moves.http_client import BAD_REQUEST, OK
 
 
 __all__ = ('Clearbit', 'clearbit_result')

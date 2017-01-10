@@ -8,6 +8,6 @@ setup(
     author='Boris Raicheff',
     author_email='b@raicheff.com',
     url='https://github.com/raicheff/flask-clearbit',
-    install_requires=['flask', 'itsdangerous', 'clearbit'],
+    install_requires=['flask', 'clearbit', 'itsdangerous', 'six'],
     py_modules=['flask_clearbit'],
 )
