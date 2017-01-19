@@ -13,7 +13,7 @@ import logging
 import clearbit
 import itsdangerous
 
-from flask import Response, abort, current_app, request
+from flask import Response, abort, request
 from flask.signals import Namespace
 from six.moves.http_client import BAD_REQUEST, OK
 
@@ -40,45 +40,44 @@ class Clearbit(object):
     :param app: Flask app to initialize with. Defaults to `None`
     """
 
+    api_key = None
+
     def __init__(self, app=None, blueprint=None):
         if app is not None:
             self.init_app(app, blueprint)
 
     def init_app(self, app, blueprint=None):
-        clearbit_key = app.config.get('CLEARBIT_KEY')
-        if clearbit_key is None:
+        self.api_key = api_key = app.config.get('CLEARBIT_KEY')
+        if api_key is None:
             logger.warning('CLEARBIT_KEY not set')
             return
-        clearbit.key = clearbit_key
+        clearbit.key = api_key
         if blueprint is not None:
-            blueprint.add_url_rule('/clearbit', 'clearbit', webhooks, methods=['POST'])
+            blueprint.add_url_rule('/clearbit', 'clearbit', self.handle_webhook, methods=['POST'])
 
+    def handle_webhook(self):
+        """
+        https://clearbit.com/docs?python#webhooks
+        """
 
-def webhooks():
-    """
-    https://clearbit.com/docs?python#webhooks
-    """
+        request_signature = request.headers.get('x-request-signature')
+        if not request_signature:
+            abort(BAD_REQUEST)
 
-    request_signature = request.headers.get('x-request-signature')
-    if not request_signature:
-        abort(BAD_REQUEST)
+        algorithm, signature = request_signature.split('=')
+        if not all((algorithm == 'sha1', signature)):
+            abort(BAD_REQUEST)
 
-    algorithm, signature = request_signature.split('=')
-    if not all((algorithm == 'sha1', signature)):
-        abort(BAD_REQUEST)
+        digest = hmac.new(self.api_key, request.data, hashlib.sha1).hexdigest()
+        if not itsdangerous.constant_time_compare(digest, str(signature)):
+            abort(BAD_REQUEST)
 
-    key = current_app.config.get('CLEARBIT_KEY')
-    message = request.data
-    digest = hmac.new(key, message, hashlib.sha1).hexdigest()
-    if not itsdangerous.constant_time_compare(digest, str(signature)):
-        abort(BAD_REQUEST)
+        clearbit_result.send(self, payload=request.get_json())
 
-    payload = request.get_json()
-    webhook_id = payload.get('id')
-    logger.info('webhook_id=%s', webhook_id)
-    clearbit_result.send(current_app._get_current_object(), payload=payload)
+        return Response(status=OK)
 
-    return Response(status=OK)
+    def __getattr__(self, name):
+        return getattr(clearbit, name)
 
 
 # EOF
