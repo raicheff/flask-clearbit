@@ -1,7 +1,7 @@
 #
 # Flask-Clearbit
 #
-# Copyright (C) 2016 Boris Raicheff
+# Copyright (C) 2017 Boris Raicheff
 # All rights reserved
 #
 
