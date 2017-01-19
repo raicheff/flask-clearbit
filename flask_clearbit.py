@@ -69,7 +69,7 @@ class Clearbit(object):
             abort(BAD_REQUEST)
 
         digest = hmac.new(self.api_key.encode(), request.data, hashlib.sha1).hexdigest()
-        if not itsdangerous.constant_time_compare(digest, str(signature)):
+        if not itsdangerous.constant_time_compare(digest, signature):
             abort(BAD_REQUEST)
 
         clearbit_result.send(self, payload=request.get_json())
