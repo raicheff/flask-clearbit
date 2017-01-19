@@ -13,7 +13,7 @@ import logging
 import clearbit
 import itsdangerous
 
-from flask import Response, abort, request
+from flask import Response, abort, request, url_for
 from flask.signals import Namespace
 from six.moves.http_client import BAD_REQUEST, OK
 
@@ -45,18 +45,23 @@ class Clearbit(object):
 
     api_key = None
 
+    blueprint = None
+
     def __init__(self, app=None, blueprint=None):
         if app is not None:
             self.init_app(app, blueprint)
 
     def init_app(self, app, blueprint=None):
+
         self.api_key = api_key = app.config.get('CLEARBIT_KEY')
         if api_key is None:
             logger.warning('CLEARBIT_KEY not set')
             return
         clearbit.key = api_key
+
         if blueprint is not None:
             blueprint.add_url_rule('/clearbit', 'clearbit', self.handle_webhook, methods=['POST'])
+            self.blueprint = blueprint
 
     def handle_webhook(self):
         """
@@ -78,6 +83,11 @@ class Clearbit(object):
         clearbit_result.send(self, payload=request.get_json())
 
         return Response(status=OK)
+
+    @property
+    def webhook_url(self):
+        if self.blueprint:
+            return url_for('.'.join((self.blueprint.name, 'clearbit')), _external=True)
 
     def __getattr__(self, name):
         return getattr(clearbit, name)
