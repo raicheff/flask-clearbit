@@ -18,16 +18,10 @@ from flask.signals import Namespace
 from six.moves.http_client import BAD_REQUEST, OK
 
 
-__all__ = ('Clearbit', 'clearbit_result')
-
-__version__ = '0.1.1'
-
-
 logger = logging.getLogger('Flask-Clearbit')
 
-namespace = Namespace()
 
-clearbit_result = namespace.signal('clearbit.result')
+clearbit_result = Namespace().signal('clearbit.result')
 
 
 class Clearbit(object):
@@ -41,6 +35,7 @@ class Clearbit(object):
     https://clearbit.com/docs?python
 
     :param app: Flask app to initialize with. Defaults to `None`
+    :param blueprint: Blueprint to attach the webhook handler to. Defaults to `None`
     """
 
     api_key = None
@@ -69,7 +64,7 @@ class Clearbit(object):
         """
 
         request_signature = request.headers.get('x-request-signature')
-        if not request_signature:
+        if request_signature is None:
             abort(BAD_REQUEST)
 
         algorithm, signature = request_signature.split('=')
