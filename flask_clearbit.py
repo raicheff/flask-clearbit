@@ -68,7 +68,7 @@ class Clearbit(object):
         if not all((algorithm == 'sha1', signature)):
             abort(BAD_REQUEST)
 
-        digest = hmac.new(self.api_key, request.data, hashlib.sha1).hexdigest()
+        digest = hmac.new(self.api_key.encode(), request.data, hashlib.sha1).hexdigest()
         if not itsdangerous.constant_time_compare(digest, str(signature)):
             abort(BAD_REQUEST)
 
