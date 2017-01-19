@@ -75,7 +75,7 @@ class Clearbit(object):
         if not itsdangerous.constant_time_compare(digest, signature):
             abort(BAD_REQUEST)
 
-        clearbit_result.send(self, payload=request.get_json())
+        clearbit_result.send(self, result=request.get_json())
 
         return Response(status=OK)
 
