@@ -34,8 +34,11 @@ class Clearbit(object):
     """
     Flask-Clearbit
 
-    Refer to http://flask-clearbit.readthedocs.org for
-    more details.
+    Documentation:
+    https://flask-clearbit.readthedocs.io
+
+    API:
+    https://clearbit.com/docs?python
 
     :param app: Flask app to initialize with. Defaults to `None`
     """
