@@ -86,7 +86,7 @@ class Clearbit(object):
 
     @property
     def webhook_url(self):
-        if self.blueprint:
+        if self.blueprint is not None:
             return url_for('.'.join((self.blueprint.name, 'clearbit')), _external=True)
 
     def __getattr__(self, name):
