@@ -59,7 +59,7 @@ class Clearbit(object):
         clearbit.key = api_key
 
         if blueprint is not None:
-            blueprint.add_url_rule('/clearbit', 'clearbit', self.handle_webhook, methods=['POST'])
+            blueprint.add_url_rule('/clearbit', 'clearbit', self.handle_webhook, methods=('POST',))
             self.blueprint = blueprint
 
     def handle_webhook(self):
