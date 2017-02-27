@@ -8,7 +8,7 @@
 
 import hashlib
 import hmac
-import logging
+import warnings
 
 import clearbit
 import itsdangerous
@@ -16,9 +16,6 @@ import itsdangerous
 from flask import abort, request, url_for
 from flask.signals import Namespace
 from six.moves.http_client import BAD_REQUEST, OK
-
-
-logger = logging.getLogger('Flask-Clearbit')
 
 
 clearbit_result = Namespace().signal('clearbit.result')
@@ -54,7 +51,7 @@ class Clearbit(object):
 
         self.api_key = api_key = app.config.get('CLEARBIT_KEY')
         if api_key is None:
-            logger.warning('CLEARBIT_KEY not set')
+            warnings.warn('CLEARBIT_KEY not set', RuntimeWarning, stacklevel=2)
             return
         clearbit.key = api_key
 
